@@ -1,3 +1,4 @@
-profile: ambient
-env:
-  PILOT_ENABLE_ALPHA_GATEWAY_API: "true"
+istiod:
+  profile: ambient
+  env:
+    PILOT_ENABLE_ALPHA_GATEWAY_API: "true"
