@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: istio
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      directories:
+      - path: istio/*
+      repoURL: https://github.com/ams0/argocd-ambient.git
+      revision: HEAD
+  template:
+    metadata:
+      name: '{{ path.basename }}'
+    spec:
+      destination:
+        namespace: istio-system
+        server: https://kubernetes.default.svc
+      project: default #need to find a way to share repos between projects
+      revisionHistoryLimit: 10
+      ignoreDifferences: #https://github.com/argoproj/argo-cd/issues/4276
+      - group: admissionregistration.k8s.io
+        kind: MutatingWebhookConfiguration
+        jqPathExpressions:
+        - .webhooks[]?.failurePolicy
+        - .webhooks[]?.namespaceSelector.matchExpressions[] | select(.key == "control-plane" or .key == "kubernetes.azure.com/managedby")  
+      - group: admissionregistration.k8s.io
+        kind: ValidatingWebhookConfiguration
+        jqPathExpressions:
+        - .webhooks[]?.failurePolicy
+        - .webhooks[]?.namespaceSelector.matchExpressions[] | select(.key == "control-plane" or .key == "kubernetes.azure.com/managedby")  
+      sources:
+        - chart: '{{ path.basename }}'
+          repoURL: https://istio-release.storage.googleapis.com/charts
+          targetRevision: "1.24.1"
+          helm:
+            valueFiles:
+            - $values/istio/{{ path.basename }}/values.yaml
+        - repoURL: 'https://github.com/ams0/argocd-ambient.git'
+          targetRevision: main
+          ref: values
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+          prune: true
+          selfHeal: true
