@@ -1,4 +1,5 @@
 profile: ambient
-pilot:
-  env:
-    PILOT_ENABLE_ALPHA_GATEWAY_API=true
+env:
+  PILOT_ENABLE_ALPHA_GATEWAY_API=true
+  PILOT_ENABLE_AMBIENT=true
+  PILOT_ENABLE_AMBIENT_WAYPOINTS=true
