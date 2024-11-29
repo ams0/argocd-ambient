@@ -1,0 +1,24 @@
+{{- range $gatewayName, $gatewayData:= .Values.gateways }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  {{- with $gatewayData.additionalAnnotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  {{- with $gatewayData.additionalLabels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ $gatewayName }}
+  {{- with $gatewayData.namespace }}
+  namespace: {{ . }}
+  {{- end }}
+spec:
+  {{- with $gatewayData.spec }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: gateways
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      directories:
+      - path: gateways/*
+      repoURL: https://github.com/ams0/argocd-ambient.git
+      revision: main
+  template:
+    metadata:
+      name: '{{ path.basename }}'
+    spec:
+      destination:
+        namespace: istio-system
+        server: https://kubernetes.default.svc
+      project: default #need to find a way to share repos between projects
+      revisionHistoryLimit: 10
+      sources:
+        - path: 'charts/gateways'
+          repoURL: https://github.com/ams0/argocd-ambient.git
+          targetRevision: "main"
+          helm:
+            valueFiles:
+            - $values/gateways/{{ path.basename }}/values.yaml
+        - repoURL: 'https://github.com/ams0/argocd-ambient.git'
+          targetRevision: main
+          ref: values
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+          prune: true
+          selfHeal: true
